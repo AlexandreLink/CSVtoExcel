@@ -53,10 +53,13 @@ def process_csv(csv_file):
 # Interface Streamlit
 st.title("Convertisseur CSV vers Excel et Traitement des Données")
 
+# Demander le nom de fichier à l'utilisateur
+file_name = st.text_input("Entrez le nom du fichier Excel à télécharger (sans extension) :")
+
 # Upload du fichier CSV
 uploaded_file = st.file_uploader("Téléversez le fichier CSV", type="csv")
 
-if uploaded_file:
+if uploaded_file and file_name:
     # Traiter le fichier CSV
     df_processed = process_csv(uploaded_file)
     
@@ -65,15 +68,17 @@ if uploaded_file:
         st.write("Aperçu des données après traitement :")
         st.dataframe(df_processed.head())
 
+        # Nom complet du fichier avec extension
+        excel_file_name = f"{file_name}.xlsx"
+
         # Sauvegarder le fichier traité en Excel
-        processed_excel_path = "fichier_processee.xlsx"
-        df_processed.to_excel(processed_excel_path, index=False)
+        df_processed.to_excel(excel_file_name, index=False)
         
         # Télécharger le fichier Excel transformé
-        with open(processed_excel_path, "rb") as file:
+        with open(excel_file_name, "rb") as file:
             st.download_button(
                 label="Télécharger le fichier Excel",
                 data=file,
-                file_name="fichier_processee.xlsx",
+                file_name=excel_file_name,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
