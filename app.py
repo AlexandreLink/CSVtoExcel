@@ -6,31 +6,28 @@ def process_csv(csv_file):
     # Lire le fichier CSV avec toutes les colonnes
     df = pd.read_csv(csv_file)
 
-    # Liste des colonnes à supprimer
-    columns_to_delete = ['Customer email', 'Customer phone', 'Imported ID', 'BAB Type', 'BAB reference',
-                         'BAB name', 'Delivery Method', 'Delivery type', 'Delivery first name', 'Delivery last name',
-                         'Shipping Price', 'Delivery price currency', 'Updated at', 'Next order date', 
-                         'Billing interval type', 'Billing interval count', 'Billing min cycles', 'Billing max cycles',
-                         'Billing address', 'Billing city', 'Billing province code', 'Payment ID', 'Payment method', 
-                         'Billing full name', 'Payment method brand', 'Payment method expiry year', 
-                         'Payment method expiry month', 'Payment method last digits', 'Line title', 'Line SKU', 
-                         'Line variant quantity', 'Line variant price', 'Line price currency', 'Line product ID', 
-                         'Line variant ID', 'Line selling plan ID', 'Line selling plan name', 'Line Attributes', 
-                         'Subscription Attributes', 'Order notes', 'Cancellation date', 'Cancellation reason', 
-                         'Cancellation note', 'Paused on date', 'Total orders till date / Current Billing cycle', 
-                         'Past order names', 'Total revenue generated (USD)', 'Total revenue generated (EUR)', 
-                         'First order name', 'First order amount', 'Last order name', 'Last order date', 'Last order amount', 
-                         'Discount applied', 'Total Processed', 'Delivery Price Override']
+    # Étape 1 : Mettre toutes les valeurs en majuscules
+    df = df.applymap(lambda x: x.upper() if isinstance(x, str) else x)
 
-    # Supprimer les colonnes inutiles si elles existent dans le CSV
-    df = df.drop(columns=[col for col in columns_to_delete if col in df.columns])
+    # Correspondance des colonnes pour le fichier final
+    column_mapping = {
+        "ID": "Customer ID",
+        "Customer name": "Delivery name",
+        "Delivery address 1": "Delivery address 1",
+        "Delivery address 2": "Delivery address 2",
+        "Delivery zip": "Delivery zip",
+        "Delivery city": "Delivery city",
+        "Delivery province code": "Delivery province code",
+        "Delivery country code": "Delivery country code",
+        "Billing country": "Billing country",
+        "Delivery interval count": "Quantity"
+    }
 
-    # Liste des colonnes finales demandées
-    columns_to_keep = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
-                       'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
-                       'Billing country', 'Quantity', 'Created at']
-    
-    # Conserver uniquement les colonnes présentes parmi celles demandées
+    # Renommer les colonnes pour correspondre aux noms finaux
+    df = df.rename(columns=column_mapping)
+
+    # Filtrer uniquement les colonnes nécessaires pour le fichier final
+    columns_to_keep = list(column_mapping.values())
     df = df[[col for col in columns_to_keep if col in df.columns]]
 
     # Étape 2 : Créer la date limite au format du CSV (ex. "2024-11-04T23:59:59+01:00")
