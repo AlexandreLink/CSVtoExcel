@@ -31,6 +31,8 @@ def process_csv(csv_file):
     columns_to_keep = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
                        'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
                        'Billing country', 'Quantity', 'Created at']
+    
+    # Filtrer pour conserver seulement les colonnes nécessaires qui sont présentes
     df = df[[col for col in columns_to_keep if col in df.columns]]
 
     # Étape 2 : Créer la date limite au format du CSV (ex. "2024-11-04T23:59:59+01:00")
