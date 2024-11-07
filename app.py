@@ -68,17 +68,30 @@ if uploaded_file and file_name:
         st.write("Aperçu des données après traitement :")
         st.dataframe(df_processed.head())
 
-        # Nom complet du fichier avec extension
-        excel_file_name = f"{file_name}.xlsx"
+        # Séparer les données en deux groupes : France et Reste du monde
+        df_france = df_processed[df_processed['Billing country'] == "FRANCE"]
+        df_rest_of_world = df_processed[df_processed['Billing country'] != "FRANCE"]
 
-        # Sauvegarder le fichier traité en Excel
-        df_processed.to_excel(excel_file_name, index=False)
-        
-        # Télécharger le fichier Excel transformé
-        with open(excel_file_name, "rb") as file:
+        # Enregistrer les fichiers avec les noms personnalisés
+        france_file_name = f"{file_name}_FRANCE.xlsx"
+        rest_of_world_file_name = f"{file_name}_Rest_of_World.xlsx"
+
+        # Sauvegarder le fichier pour la France
+        df_france.to_excel(france_file_name, index=False)
+        with open(france_file_name, "rb") as file:
             st.download_button(
-                label="Télécharger le fichier Excel",
+                label="Télécharger le fichier France",
                 data=file,
-                file_name=excel_file_name,
+                file_name=france_file_name,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+        # Sauvegarder le fichier pour le reste du monde
+        df_rest_of_world.to_excel(rest_of_world_file_name, index=False)
+        with open(rest_of_world_file_name, "rb") as file:
+            st.download_button(
+                label="Télécharger le fichier Reste du Monde",
+                data=file,
+                file_name=rest_of_world_file_name,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
