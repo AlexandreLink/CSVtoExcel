@@ -16,13 +16,18 @@ def process_csv(csv_file):
     # 4. Filtrer les lignes avec des dates 'Created at' <= date_limite_str
     if 'Created at' in df.columns:
         df = df[df['Created at'] <= date_limite_str]
+        # Supprimer la colonne 'Created at' après le filtrage
+        df = df.drop(columns=['Created at'], errors='ignore')
     else:
         st.error("Le fichier CSV ne contient pas de colonne 'Created at' pour les dates de commande.")
 
-    # 5. Supprimer la colonne 'Created at' après le filtrage
-    df = df.drop(columns=['Created at'], errors='ignore')
+    # 5. Garder uniquement les colonnes spécifiées
+    columns_to_keep = ["ID", "Customer name", "Delivery address 1", "Delivery address 2", 
+                       "Delivery zip", "Delivery city", "Delivery province code", 
+                       "Delivery country code", "Billing country", "Delivery interval count"]
+    df = df[columns_to_keep]
 
-    # 6. Correspondance des colonnes pour le fichier final
+    # 6. Renommer les colonnes pour correspondre aux noms finaux et ordonner
     column_mapping = {
         "ID": "Customer ID",
         "Customer name": "Delivery name",
@@ -35,23 +40,12 @@ def process_csv(csv_file):
         "Billing country": "Billing country",
         "Delivery interval count": "Quantity"
     }
-
-    # 7. Renommer les colonnes pour correspondre aux noms finaux
     df = df.rename(columns=column_mapping)
 
-    # 8. Filtrer uniquement les colonnes nécessaires pour le fichier final
-    columns_to_keep = list(column_mapping.values())
-    df = df[[col for col in columns_to_keep if col in df.columns]]
-
-    # 9. Assurer la présence de toutes les colonnes demandées, même si elles sont absentes du CSV initial
-    final_columns = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
-                     'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
-                     'Billing country', 'Quantity']
-    for col in final_columns:
-        if col not in df.columns:
-            df[col] = ""  # Ajouter des colonnes manquantes avec des valeurs vides
-
-    # 10. Réorganiser les colonnes pour correspondre à l'ordre final souhaité
+    # Réorganiser les colonnes pour correspondre à l'ordre final souhaité
+    final_columns = ["Customer ID", "Delivery name", "Delivery address 1", "Delivery address 2", 
+                     "Delivery zip", "Delivery city", "Delivery province code", 
+                     "Delivery country code", "Billing country", "Quantity"]
     df = df[final_columns]
 
     return df
