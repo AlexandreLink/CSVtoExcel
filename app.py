@@ -21,6 +21,7 @@ def process_file(df):
     # Étape 2 : Filtrer les transactions jusqu'au 4 à minuit
     # Vérification de la colonne 'Created at' (supposée être en colonne Y)
     if 'Created at' in df.columns:
+        # Conversion de la colonne 'Created at' en datetime, en utilisant errors='coerce' pour gérer les erreurs
         df['Created at'] = pd.to_datetime(df['Created at'], errors='coerce')
 
         # Définir la date limite (le 4 du mois à 23:59:59)
@@ -29,8 +30,8 @@ def process_file(df):
         annee = today.year
         date_limite = pd.Timestamp(f"{annee}-{mois:02d}-04 23:59:59")
 
-        # Filtrer les lignes pour garder uniquement celles avant ou égales au 4 à minuit
-        df = df[df['Created at'] <= date_limite]
+        # Filtrer les lignes pour garder uniquement celles dont la date est avant ou égale au 4 à minuit
+        df = df[df['Created at'].notna() & (df['Created at'] <= date_limite)]
     else:
         st.error("Le fichier Excel ne contient pas de colonne 'Created at' pour les dates de commande.")
 
