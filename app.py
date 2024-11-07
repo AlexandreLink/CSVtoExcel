@@ -9,11 +9,9 @@ def process_csv(csv_file):
     # Liste des colonnes à supprimer
     columns_to_delete = ['Customer email', 'Customer phone', 'Imported ID', 'BAB Type', 'BAB reference',
                          'BAB name', 'Delivery Method', 'Delivery type', 'Delivery first name', 'Delivery last name',
-                         'Delivery province code', 'Delivery country code', 'Delivery phone', 'Delivery company', 
                          'Shipping Price', 'Delivery price currency', 'Updated at', 'Next order date', 
                          'Billing interval type', 'Billing interval count', 'Billing min cycles', 'Billing max cycles',
-                         'Billing address', 'Billing country', 'Billing country code', 'Billing city', 'Billing province code',
-                         'Billing zip', 'Delivery interval type', 'Delivery interval count', 'Payment ID', 'Payment method', 
+                         'Billing address', 'Billing city', 'Billing province code', 'Payment ID', 'Payment method', 
                          'Billing full name', 'Payment method brand', 'Payment method expiry year', 
                          'Payment method expiry month', 'Payment method last digits', 'Line title', 'Line SKU', 
                          'Line variant quantity', 'Line variant price', 'Line price currency', 'Line product ID', 
@@ -27,12 +25,12 @@ def process_csv(csv_file):
     # Supprimer les colonnes inutiles si elles existent dans le CSV
     df = df.drop(columns=[col for col in columns_to_delete if col in df.columns])
 
-    # Liste des colonnes finales que nous voulons conserver après suppression
+    # Liste des colonnes finales demandées
     columns_to_keep = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
                        'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
                        'Billing country', 'Quantity', 'Created at']
     
-    # Filtrer pour conserver seulement les colonnes nécessaires qui sont présentes
+    # Conserver uniquement les colonnes présentes parmi celles demandées
     df = df[[col for col in columns_to_keep if col in df.columns]]
 
     # Étape 2 : Créer la date limite au format du CSV (ex. "2024-11-04T23:59:59+01:00")
@@ -42,23 +40,21 @@ def process_csv(csv_file):
     # Étape 3 : Filtrer les lignes avec des dates 'Created at' <= date_limite_str
     if 'Created at' in df.columns:
         df = df[df['Created at'] <= date_limite_str]
+        # Supprimer la colonne 'Created at' après le filtrage
+        df = df.drop(columns=['Created at'])
     else:
         st.error("Le fichier CSV ne contient pas de colonne 'Created at' pour les dates de commande.")
 
-    # Vérification du nombre et des noms de colonnes avant le renommage
-    st.write("Nombre de colonnes après filtrage : ", len(df.columns))
-    st.write("Colonnes actuelles : ", df.columns.tolist())
+    # Assurer la présence de toutes les colonnes demandées, même si elles sont absentes du CSV initial
+    final_columns = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
+                     'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
+                     'Billing country', 'Quantity']
+    for col in final_columns:
+        if col not in df.columns:
+            df[col] = ""  # Ajouter des colonnes manquantes avec des valeurs vides
 
-    # Liste des noms de colonnes souhaités
-    expected_columns = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 
-                        'Delivery zip', 'Delivery city', 'Delivery province code', 'Delivery country code', 
-                        'Billing country', 'Quantity']
-    
-    # Renommer uniquement si le nombre de colonnes correspond
-    if len(df.columns) == len(expected_columns):
-        df.columns = expected_columns
-    else:
-        st.warning("Le nombre de colonnes dans le CSV ne correspond pas au nombre attendu après filtrage.")
+    # Réorganiser les colonnes pour correspondre à l'ordre final souhaité
+    df = df[final_columns]
 
     return df
 
