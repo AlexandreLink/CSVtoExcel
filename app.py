@@ -15,50 +15,52 @@ def convert_csv_to_excel(csv_file):
     return df_excel, output_excel
 
 def process_file(df):
-    # Suppression de la première ligne
+    # Étape 1 : Suppression de la première ligne (titres)
     df = df.iloc[1:]
 
-    # Vérification de la colonne de commande 'Y' et filtrage des dates
-    if 'Y' in df.columns:
-        df['Y'] = pd.to_datetime(df['Y'], errors='coerce')
+    # Étape 2 : Filtrer les transactions jusqu'au 4 à minuit
+    # Vérification de la colonne 'Created at' (supposée être en colonne Y)
+    if 'Created at' in df.columns:
+        df['Created at'] = pd.to_datetime(df['Created at'], errors='coerce')
 
-        # Définir la date limite (4 du mois à 23:59:59)
+        # Définir la date limite (le 4 du mois à 23:59:59)
         today = datetime.today()
         mois = today.month
         annee = today.year
         date_limite = pd.Timestamp(f"{annee}-{mois:02d}-04 23:59:59")
 
-        # Filtrer les lignes jusqu'au 4 à minuit
-        df = df[df['Y'] <= date_limite]
+        # Filtrer les lignes pour garder uniquement celles avant ou égales au 4 à minuit
+        df = df[df['Created at'] <= date_limite]
     else:
-        st.error("Le fichier Excel ne contient pas de colonne 'Y' pour les dates de commande.")
+        st.error("Le fichier Excel ne contient pas de colonne 'Created at' pour les dates de commande.")
 
-    # Mettre toutes les valeurs en majuscules
+    # Étape 3 : Mettre toutes les valeurs en majuscules
     df = df.applymap(lambda x: x.upper() if isinstance(x, str) else x)
 
-    # Suppression des colonnes inutiles si elles existent
-    columns_to_delete = ['BA', 'BU', 'AN', 'AZ', 'AA', 'AL', 'U', 'Z', 'B', 'J', 'C']
-    for col_name in columns_to_delete:
-        if col_name in df.columns:
-            df.drop(columns=[col_name], inplace=True)
+    # Étape 4 : Suppression des colonnes inutiles en vérifiant leur existence
+    columns_to_delete = ['Customer email', 'Customer phone', 'Imported ID', 'BAB Type', 'BAB reference',
+                         'BAB name', 'Delivery Method', 'Delivery type', 'Delivery first name', 'Delivery last name',
+                         'Delivery province code', 'Delivery country code', 'Delivery phone', 'Delivery company', 
+                         'Shipping Price', 'Delivery price currency', 'Updated at', 'Next order date', 
+                         'Billing interval type', 'Billing interval count', 'Billing min cycles', 'Billing max cycles',
+                         'Billing address', 'Billing country', 'Billing country code', 'Billing city', 'Billing province code',
+                         'Billing zip', 'Delivery interval type', 'Delivery interval count', 'Payment ID', 'Payment method', 
+                         'Billing full name', 'Payment method brand', 'Payment method expiry year', 
+                         'Payment method expiry month', 'Payment method last digits', 'Line title', 'Line SKU', 
+                         'Line variant quantity', 'Line variant price', 'Line price currency', 'Line product ID', 
+                         'Line variant ID', 'Line selling plan ID', 'Line selling plan name', 'Line Attributes', 
+                         'Subscription Attributes', 'Order notes', 'Cancellation date', 'Cancellation reason', 
+                         'Cancellation note', 'Paused on date', 'Total orders till date / Current Billing cycle', 
+                         'Past order names', 'Total revenue generated (USD)', 'Total revenue generated (EUR)', 
+                         'First order name', 'First order amount', 'Last order name', 'Last order date', 'Last order amount', 
+                         'Discount applied', 'Total Processed', 'Delivery Price Override']
 
-    # Ajouter des colonnes et copies
-    if 'E' in df.columns:
-        df.insert(df.columns.get_loc('E'), 'New Column E', '')
-    if 'H' in df.columns:
-        df.insert(df.columns.get_loc('H'), 'New Column H', '')
-    if 'K' in df.columns and 'I' in df.columns:
-        df['I'] = df['K']
-    if 'H' in df.columns and 'K' in df.columns:
-        df['K'] = df['H']
-    if 'B' in df.columns:
-        df.insert(12, 'New Column M', '')
-        df['M'] = df['B']
-        df.drop(['H', 'B'], axis=1, inplace=True)
+    df = df.drop(columns=[col for col in columns_to_delete if col in df.columns])
 
-    # Fusionner les colonnes 'B' et 'C' si elles existent
-    if 'B' in df.columns and 'C' in df.columns:
-        df['Full Name'] = df['B'] + ' ' + df['C']
+    # Étape 5 : Insérer une nouvelle ligne de titres
+    new_titles = ['Customer ID', 'Delivery name', 'Delivery address 1', 'Delivery address 2', 'Delivery zip', 
+                  'Delivery city', 'Delivery province code', 'Delivery country code', 'Billing country', 'Quantity']
+    df.columns = new_titles
 
     return df
 
