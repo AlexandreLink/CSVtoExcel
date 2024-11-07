@@ -33,8 +33,8 @@ def process_file(df):
         annee = today.year
         date_limite = pd.Timestamp(f"{annee}-{mois:02d}-04 23:59:59")
 
-        # Filtrer les lignes pour garder uniquement celles dont la date est avant ou égale au 4 à minuit
-        df = df[df['Created at'] <= date_limite]
+        # Vérifier que les valeurs dans 'Created at' sont bien de type datetime avant la comparaison
+        df = df[df['Created at'].apply(lambda x: isinstance(x, pd.Timestamp) and x <= date_limite)]
     else:
         st.error("Le fichier Excel ne contient pas de colonne 'Created at' pour les dates de commande.")
 
